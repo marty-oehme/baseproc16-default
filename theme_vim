@@ -1,0 +1,113 @@
+#!/usr/bin/env bash
+readonly dependency=("chriskempson/base16-vim")
+
+path="$1"
+package="$2"
+theme="$3"
+permanent="$4"
+
+file_exists() {
+  if [[ -f "$1" ]]; then
+    true
+  else
+    false
+  fi
+}
+# check for existence of pattern $2 in file $1
+line_exists() {
+  local file="$1"
+  local line="$2"
+
+  if ! file_exists "$file" || ! grep -qe "$line" "$file"; then
+    false
+  else
+    true
+  fi
+}
+# prepare newline at eof to make adding newlines easier
+eol_exists_or_append() {
+  local file="$1"
+  local eof
+  eof=$(tail -c 1 "$file")
+
+  if [ -n "$eof" ]; then
+    printf "\\n" >>"$file"
+  fi
+}
+# append line $2 to file $1
+line_exists_or_append() {
+  local file="$1"
+  local line="$2"
+  local new="${3:-$2}"
+
+  if ! line_exists "$file" "$line"; then
+    eol_exists_or_append "$file"
+    echo "$new" >>"$file"
+  fi
+}
+
+theme_vim() {
+  dbg_msg="VIM: $package - "
+  tfile="$path/$package/colors/base16-$theme.vim"
+
+  check_tfile
+
+  if [[ "$permanent" == "true" ]]; then set_vim_theme; fi
+  recolor_vim_w_tmux
+
+  [[ "$DEBUG" == true ]] && echo "$dbg_msg"
+}
+
+check_tfile() {
+  if ! file_exists "$tfile"; then
+    dbg_msg="$dbg_msg theme $theme for vim not found.\n"
+    return
+  fi
+}
+
+recolor_vim_w_tmux() {
+  # this whole thing only works when tmux is running
+  pgrep tmux >/dev/null || return
+
+  while read -r l; do
+    # we need to close panels that are in a mode and get them out to send keys to vim
+    if [ "${l: -1}" = 1 ]; then
+      tmux send-keys -t "${l/:*/}" -X cancel && tmux send-keys -t "${l/:*/}" ":source $tfile" "Enter"
+    else
+      tmux send-keys -t "${l/:*/}" ":source $tfile" "Enter"
+    fi
+
+    # find all panes which currently have nvim/vim running
+  done < <(tmux list-panes -a -F '#D:#T:#{pane_current_command}:#{pane_in_mode}' | grep ':VIM:\|:nvim:')
+}
+
+set_vim_theme() {
+  local vim_dirs="${XDG_CONFIG_HOME:-/$HOME/.config}/nvim $HOME/.vim"
+
+  for vim_dir in $vim_dirs; do
+    if [[ -d "$vim_dir" ]]; then
+      cat "$tfile" >"$vim_dir/colorscheme.vim"
+      echo "colorscheme base16-$theme" >>"$vim_dir/colorscheme.vim"
+
+      call_from_vim_init
+
+      dbg_msg="$dbg_msg Set theme $theme\n"
+    fi
+  done
+}
+
+# make sure we're calling our new colorscheme whenever starting vim
+call_from_vim_init() {
+  if file_exists "$vim_dir/init.vim"; then
+    line_exists_or_append "$vim_dir/init.vim" "runtime colorscheme.vim"
+  elif file_exists "$HOME/.vimrc"; then
+    line_exists_or_append "$HOME/.vimrc" "runtime colorscheme.vim"
+  fi
+}
+
+# Check deps
+if printf '%s\n' "${dependency[@]}" | grep -q -P "^$package$"; then
+  theme_vim
+else
+  printf "Processor does not work for %s, please use another." "$package"
+fi
