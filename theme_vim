@@ -61,7 +61,7 @@ theme_vim() {
 check_tfile() {
   if ! file_exists "$tfile"; then
     dbg_msg="$dbg_msg theme $theme for vim not found.\n"
-    return
+    exit 1
   fi
 }
 
@@ -89,7 +89,7 @@ set_vim_theme() {
       cat "$tfile" >"$vim_dir/colorscheme.vim"
       echo "colorscheme base16-$theme" >>"$vim_dir/colorscheme.vim"
 
-      call_from_vim_init
+      call_from_vim_init "$vim_dir"
 
       dbg_msg="$dbg_msg Set theme $theme\n"
     fi
@@ -98,6 +98,8 @@ set_vim_theme() {
 
 # make sure we're calling our new colorscheme whenever starting vim
 call_from_vim_init() {
+  local vim_dir="$1"
+
   if file_exists "$vim_dir/init.vim"; then
     line_exists_or_append "$vim_dir/init.vim" "runtime colorscheme.vim"
   elif file_exists "$HOME/.vimrc"; then
