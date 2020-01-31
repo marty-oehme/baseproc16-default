@@ -1,0 +1,95 @@
+#!/usr/bin/env bash
+readonly dependency=("0xdec/base16-rofi")
+
+path="$1"
+package="$2"
+theme="$3"
+permanent="$4"
+
+file_exists() {
+  if [[ -f "$1" ]]; then
+    true
+  else
+    false
+  fi
+}
+# check for existence of pattern $2 in file $1
+line_exists() {
+  local file="$1"
+  local line="$2"
+
+  if ! file_exists "$file" || ! grep -qe "$line" "$file"; then
+    false
+  else
+    true
+  fi
+}
+# prepare newline at eof to make adding newlines easier
+eol_exists_or_append() {
+  local file="$1"
+  local eof
+  eof=$(tail -c 1 "$file")
+
+  if [ -n "$eof" ]; then
+    printf "\\n" >>"$file"
+  fi
+}
+# append line $2 to file $1
+line_exists_or_append() {
+  local file="$1"
+  local line="$2"
+  local new="${3:-$2}"
+
+  if ! line_exists "$file" "$line"; then
+    eol_exists_or_append "$file"
+    echo "$new" >>"$file"
+  fi
+}
+check_tfile() {
+  if ! file_exists "$tfile"; then
+    dbg_msg="$dbg_msg theme $theme for rofi not found.\n"
+    exit 1
+  fi
+}
+
+theme_rofi() {
+  dbg_msg="ROFI: $package - "
+  tfile="$path/$package/themes/base16-$theme.rasi"
+
+  check_tfile
+
+  if [[ "$permanent" == "true" ]]; then set_rofi_theme; fi
+  switch_rofi_theme
+
+  [[ "$DEBUG" == true ]] && echo "$dbg_msg"
+}
+
+switch_rofi_theme() {
+  local rofi_dir="${XDG_CONFIG_HOME:-/$HOME/.config}/rofi/themes"
+}
+
+set_rofi_theme() {
+  local rofi_dir="${XDG_CONFIG_HOME:-/$HOME/.config}/rofi/themes"
+
+  if [[ -d "$rofi_dir" ]]; then
+    cat "$tfile" >"$rofi_dir/colorscheme.rasi"
+
+    call_from_config "$rofi_dir"
+
+    dbg_msg="$dbg_msg Set theme $theme\n"
+  fi
+}
+
+call_from_config() {
+  local rofi_dir="$1"
+
+  if file_exists "$rofi_dir/settings.rasi"; then
+    line_exists_or_append "$rofi_dir/settings.rasi" '@import "colorscheme.rasi"'
+  fi
+}
+
+if printf '%s\n' "${dependency[@]}" | grep -q -P "^$package$"; then
+  theme_rofi
+else
+  printf "Processor does not work for %s, please use another." "$package"
+fi
