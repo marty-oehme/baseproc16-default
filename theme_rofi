@@ -1,95 +1,90 @@
 #!/usr/bin/env bash
 readonly dependency=("0xdec/base16-rofi")
+readonly app="rofi"
 
 path="$1"
 package="$2"
 theme="$3"
 permanent="$4"
 
-file_exists() {
-  if [[ -f "$1" ]]; then
-    true
-  else
-    false
-  fi
-}
-# check for existence of pattern $2 in file $1
-line_exists() {
-  local file="$1"
-  local line="$2"
-
-  if ! file_exists "$file" || ! grep -qe "$line" "$file"; then
-    false
-  else
-    true
-  fi
-}
-# prepare newline at eof to make adding newlines easier
-eol_exists_or_append() {
-  local file="$1"
-  local eof
-  eof=$(tail -c 1 "$file")
-
-  if [ -n "$eof" ]; then
-    printf "\\n" >>"$file"
-  fi
-}
-# append line $2 to file $1
-line_exists_or_append() {
-  local file="$1"
-  local line="$2"
-  local new="${3:-$2}"
-
-  if ! line_exists "$file" "$line"; then
-    eol_exists_or_append "$file"
-    echo "$new" >>"$file"
-  fi
-}
-check_tfile() {
-  if ! file_exists "$tfile"; then
-    dbg_msg="$dbg_msg theme $theme for rofi not found.\n"
-    exit 1
-  fi
-}
-
-theme_rofi() {
-  dbg_msg="ROFI: $package - "
+## Main Entrypoint
+#
+#  Finds the right theme template file and starts theme
+#  switching and, if necessary, permanent setting processes.
+main() {
+  dbg_msg $app "Starting Processor"
   tfile="$path/$package/themes/base16-$theme.rasi"
 
-  check_tfile
+  if ! file_exists "$tfile"; then
+    dbg_msg $app "error" "Theme template $theme not found in package $package"
+    exit 1
+  fi
 
-  if [[ "$permanent" == "true" ]]; then set_rofi_theme; fi
-  switch_rofi_theme
+  if [[ "$permanent" == "true" ]]; then save; fi
+  # theme
 
-  [[ "$DEBUG" == true ]] && echo "$dbg_msg"
+  dbg_msg $app "Processor Done"
 }
 
-switch_rofi_theme() {
-  local rofi_dir="${XDG_CONFIG_HOME:-/$HOME/.config}/rofi/themes"
-}
+### Theme switcher
+##
+##  Makes sure that if any application instance is
+##  currently running, it switches to new theme.
+#theme() {
+#  dbg_msg $app "Switching theme"
+#  # switcheroo
+#  dbg_msg $app "Successfully switched theme"
+#}
 
-set_rofi_theme() {
+## Theme setter
+#
+#  Takes care of permanently writing the desired
+#  base16 theme into application settings.
+save() {
+  dbg_msg $app "Saving theme"
   local rofi_dir="${XDG_CONFIG_HOME:-/$HOME/.config}/rofi/themes"
 
   if [[ -d "$rofi_dir" ]]; then
     cat "$tfile" >"$rofi_dir/colorscheme.rasi"
+    dbg_msg $app "Saved theme to $rofi_dir/colorscheme.py"
 
-    call_from_config "$rofi_dir"
-
-    dbg_msg="$dbg_msg Set theme $theme\n"
+    include "$rofi_dir"
+  else
+    dbg_msg $app "warn" "No configuration directory found"
   fi
 }
 
-call_from_config() {
+## Theme includer
+#
+#  Makes sure that theme is actually included in
+#  default application startup routine.
+#  This is the most invasive step of theming since it
+#  rewrites within existing configuration files.
+include() {
+  dbg_msg $app "Including theme in configuration"
   local rofi_dir="$1"
 
   if file_exists "$rofi_dir/settings.rasi"; then
     line_exists_or_append "$rofi_dir/settings.rasi" '@import "colorscheme.rasi"'
+    dbg_msg $app "Successfully included theme in configuration"
+  else
+    dbg_msg $app "warn" "No default configuration file found"
   fi
+  dbg_msg $app "Sucessfully included theme"
 }
 
+## Dependency Checker
+#
+#  Makes sure the processor is called for the correct
+#  base16 package, or refuses to run if it is not.
 if printf '%s\n' "${dependency[@]}" | grep -q -P "^$package$"; then
-  theme_rofi
+  # Safe sourcing: https://stackoverflow.com/a/12694189
+  DIR="${BASH_SOURCE%/*}"
+  if [[ ! -d "$DIR" ]]; then DIR="$PWD"; fi
+  # shellcheck source=utilities.sh
+  . "$DIR/utilities.sh"
+
+  main
 else
-  printf "Processor does not work for %s, please use another." "$package"
+  dbg_msg $app "error" "Processor does not work for package $package"
 fi
