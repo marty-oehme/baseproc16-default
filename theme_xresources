@@ -67,12 +67,12 @@ theme_xresources() {
 switch_xresources_theme() {
   local x_dir="${XDG_CONFIG_HOME:-/$HOME/.config}/xresources"
 
-  xrdb -load "$x_dir/Xresources"
+  xrdb -merge "$tfile"
   restart_custom_applications
 }
 
 restart_custom_applications() {
-  type polybar-launch >/dev/null 2>&1 && polybar-launch simple-top
+  type polybar-launch >/dev/null 2>&1 && polybar-launch simple-top >/dev/null
 }
 
 set_xresources_theme() {
