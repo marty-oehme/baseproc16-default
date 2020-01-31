@@ -1,38 +1,38 @@
 #!/usr/bin/env bash
 readonly dependency=("chriskempson/base16-shell")
+readonly app="ansi-shell"
 
 path="$1"
 package="$2"
 theme="$3"
-permanent="$4"
+# permanent="$4"
 
-file_exists() {
-  if [[ -f "$1" ]]; then
-    true
-  else
-    false
-  fi
-}
-check_tfile() {
-  if ! file_exists "$tfile"; then
-    dbg_msg="$dbg_msg theme $theme for rofi not found.\n"
-    exit 1
-  fi
-}
-
-theme_shell() {
-  dbg_msg="SHELL: $package - "
+## Main Entrypoint
+#
+#  Finds the right theme template file and starts theme
+#  switching and, if necessary, permanent setting processes.
+main() {
+  dbg_msg $app "Starting Processor"
   tfile="$path/$package/scripts/base16-$theme.sh"
 
-  check_tfile
+  if ! file_exists "$tfile"; then
+    dbg_msg $app "error" "Theme template $theme not found in package $package"
+    exit 1
+  fi
 
-  if [[ "$permanent" == "true" ]]; then set_shell_theme; fi
-  switch_shell_theme
+  # not implemented
+  # if [[ "$permanent" == "true" ]]; then save; fi
+  theme
 
-  [[ "$DEBUG" == true ]] && echo "$dbg_msg"
+  dbg_msg $app "Processor Done"
 }
 
-switch_shell_theme() {
+## Theme switcher
+#
+#  Makes sure that if any application instance is
+#  currently running, it switches to new theme.
+theme() {
+  dbg_msg $app "Switching theme"
   # source "$tfile" -- works, but only for current terminal
   # ANSI solution from: https://www.reddit.com/r/unixporn/comments/80nidw/bspwm_script_to_change_all_themes_on_demand/duxjw1e/
   # only we can make use of kempson's scripts and send them to all terminals, so we don't have to manually
@@ -41,15 +41,43 @@ switch_shell_theme() {
     # shellcheck source=/dev/null
     source "$tfile" >"$term"
   done
-  dbg_msg="$dbg_msg Set theme $theme\n"
+  dbg_msg $app "Successfully switched theme"
 }
 
-set_shell_theme() {
-  dbg_msg="$dbg_msg -- shell theme permanent setting not implemented."
-}
+### Theme setter
+##
+##  Takes care of permanently writing the desired
+##  base16 theme into application settings.
+#save() {
+#  dbg_msg $app "Saving theme"
+#  # saveroo
+#  dbg_msg $app "Sucessfully Saved theme"
+#}
 
+### Theme includer
+##
+##  Makes sure that theme is actually included in
+##  default application startup routine.
+##  This is the most invasive step of theming since it
+##  rewrites within existing configuration files.
+#include() {
+#  dbg_msg $app "Including theme in configuration"
+#  # includeroo
+#  dbg_msg $app "Sucessfully included theme"
+#}
+
+## Dependency Checker
+#
+#  Makes sure the processor is called for the correct
+#  base16 package, or refuses to run if it is not.
 if printf '%s\n' "${dependency[@]}" | grep -q -P "^$package$"; then
-  theme_shell
+  # Safe sourcing: https://stackoverflow.com/a/12694189
+  DIR="${BASH_SOURCE%/*}"
+  if [[ ! -d "$DIR" ]]; then DIR="$PWD"; fi
+  # shellcheck source=utilities.sh
+  . "$DIR/utilities.sh"
+
+  main
 else
-  printf "Processor does not work for %s, please use another." "$package"
+  dbg_msg $app "error" "Processor does not work for package $package"
 fi
