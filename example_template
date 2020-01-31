@@ -69,7 +69,7 @@ if printf '%s\n' "${dependency[@]}" | grep -q -P "^$package$"; then
   # shellcheck source=utilities.sh
   . "$DIR/utilities.sh"
 
-  theme_qutebrowser
+  main
 else
   dbg_msg $app "error" "Processor does not work for package $package"
 fi
