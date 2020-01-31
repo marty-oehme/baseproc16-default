@@ -60,18 +60,21 @@ theme() {
 save() {
   dbg_msg $app "Saving theme"
   local vim_dirs="${XDG_CONFIG_HOME:-/$HOME/.config}/nvim $HOME/.vim"
+  local foundone=false
 
   for vim_dir in $vim_dirs; do
     if [[ -d "$vim_dir" ]]; then
+      foundone=true
+
       cat "$tfile" >"$vim_dir/colorscheme.vim"
       echo "colorscheme base16-$theme" >>"$vim_dir/colorscheme.vim"
       dbg_msg $app "Saved theme to $vim_dir/colorscheme.vim"
 
       include "$vim_dir"
-    else
-      dbg_msg $app "warn" "No configuration directory found"
     fi
   done
+
+  [[ "$foundone" == false ]] && dbg_msg $app "warn" "No configuration directory found"
 }
 
 ## Theme includer
