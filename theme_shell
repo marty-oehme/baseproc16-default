@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+readonly dependency=("chriskempson/base16-shell")
+
+path="$1"
+package="$2"
+theme="$3"
+permanent="$4"
+
+file_exists() {
+  if [[ -f "$1" ]]; then
+    true
+  else
+    false
+  fi
+}
+check_tfile() {
+  if ! file_exists "$tfile"; then
+    dbg_msg="$dbg_msg theme $theme for rofi not found.\n"
+    exit 1
+  fi
+}
+
+theme_shell() {
+  dbg_msg="SHELL: $package - "
+  tfile="$path/$package/scripts/base16-$theme.sh"
+
+  check_tfile
+
+  if [[ "$permanent" == "true" ]]; then set_shell_theme; fi
+  switch_shell_theme
+
+  [[ "$DEBUG" == true ]] && echo "$dbg_msg"
+}
+
+switch_shell_theme() {
+  # source "$tfile" -- works, but only for current terminal
+  # ANSI solution from: https://www.reddit.com/r/unixporn/comments/80nidw/bspwm_script_to_change_all_themes_on_demand/duxjw1e/
+  # only we can make use of kempson's scripts and send them to all terminals, so we don't have to manually
+  # sed the colors like sed -nE 's/^(color[0-9|_foreground|_background]+)="(.+)".*$/\1,\2/gp' $tfile
+  for term in /dev/pts/[0-9]*; do
+    # shellcheck source=/dev/null
+    source "$tfile" >"$term"
+  done
+  dbg_msg="$dbg_msg Set theme $theme\n"
+}
+
+set_shell_theme() {
+  dbg_msg="$dbg_msg -- shell theme permanent setting not implemented."
+}
+
+if printf '%s\n' "${dependency[@]}" | grep -q -P "^$package$"; then
+  theme_shell
+else
+  printf "Processor does not work for %s, please use another." "$package"
+fi
