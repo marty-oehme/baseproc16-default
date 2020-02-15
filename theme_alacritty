@@ -1,0 +1,125 @@
+#!/usr/bin/env bash
+readonly dependency=("aaron-williamson/base16-alacritty")
+readonly app="alacritty"
+#
+# Alacritty does not support including other files into
+# its configuration yet. As such, this processor needs to
+# change the user's configuration file *itself*.
+#
+# This will generally not be a problem, though it can lead
+# to corrupted configurations in exceptional circumstances
+# (such as every line being preceded by the process control
+# regex, for whatever reason).
+#
+# In general, the processor looks for a specific line in the
+# following format:
+# '# Base16 [theme name] - alacritty color config'
+# from which it will delete everything until it finds a line:
+# '# Base16End [theme name] - alacritty color config'
+# So, if you don't want to lose anything -
+# Do NOT put anything important between those two lines.
+
+path="$1"
+package="$2"
+theme="$3"
+permanent="$4"
+
+alacritty_conf="$HOME/.config/alacritty/alacritty.yml"
+
+## Main Entrypoint
+#
+#  Finds the right theme template file and starts theme
+#  switching and, if necessary, permanent setting processes.
+main() {
+  dbg_msg $app "Starting Processor"
+  tfile="$path/$package/colors/base16-$theme.yml"
+
+  if ! file_exists "$tfile"; then
+    dbg_msg $app "error" "Theme template $theme not found in package $package"
+    exit 1
+  fi
+
+  if [ ! -f "$alacritty_conf" ]; then
+    dbg_msg $app "error" "Alacritty config file not found. Please make sure file exists: $alacritty_conf"
+  fi
+
+  if [[ "$permanent" == "true" ]]; then save; fi
+  theme
+
+  dbg_msg $app "Processor Done"
+}
+
+## Theme switcher
+#
+#  Makes sure that if any application instance is
+#  currently running, it switches to new theme.
+theme() {
+  dbg_msg $app "Setting up live config reload"
+  if grep -qe '^live_config_reload:.*false' "$alacritty_conf"; then
+    sed -e 's/^live_config_reload:.*false/^live_config_reload: true/gm'
+    dbg_msg $app "Successfully enabled live config reload. Please restart alacritty to enable instant theme switching."
+  else
+    dbg_msg $app "Live config reload already enabled"
+  fi
+}
+
+## Theme setter
+#
+#  Takes care of permanently writing the desired
+#  base16 theme into application settings.
+save() {
+  dbg_msg $app "Saving theme"
+
+  # following format:
+  # '# Base16 [theme name] - alacritty color config'
+  # from which it will delete everything until it finds a line:
+  # '# Base16End [theme name] - alacritty color config'
+  startline="$(grep -ne '^# Base16 .*- alacritty color config$' "$alacritty_conf" | cut -f1 -d:)"
+  endline="$(grep -ne '^# Base16End .*- alacritty color config$' "$alacritty_conf" | cut -f1 -d:)"
+
+  tmpfile="$alacritty_conf.tmp"
+  tmptheme="$alacritty_conf.thm.tmp"
+
+  if [[ -n "$startline" && -z "$endline" ]] || [[ -z "$startline" && -n "$endline" ]] || [[ "$startline" -gt "$endline" ]]; then
+    dbg_msg $app "error" "Base 16 Pattern not correctly recognized in file: $alacritty_conf. Please make sure pattern begins with # Base 16 and ends with # Base 16end and only exists once in the file. No changes to file made."
+
+  elif [[ -z "$startline" && -z "$endline" ]]; then
+    # TODO on first run automatically replace ^colors: line and any subsequent indented lines with commented versions and create colors: *colorscheme programatically
+    dbg_msg $app "warn" "No previous Base16 pattern found in file: $alacritty_conf. If this is your first time running the processor, please manually remove any previous colors: settings and replace with 'colors: *colorscheme' instead."
+    cat "$alacritty_conf" >"$tmpfile" || exit 1
+
+  else
+    # remove old lines of any base16 theme
+    sed -e "$startline,$endline d" "$alacritty_conf" >"$tmpfile" || exit 1
+
+  fi
+
+  # make sure we're not adding this line twice
+  sed -e 's/^draw_bold_text_with_bright_colors:/# draw_bold_text_with_bright_colors:/' "$tmpfile" >"$tmpfile.tmp"
+  mv "$tmpfile.tmp" "$tmpfile"
+
+  # fix template theme name key for easier inclusion
+  sed -e "s/^colors:/$theme: \&colorscheme/" "$tfile" >"$tmptheme" || exit 1
+  echo "# Base16End $theme - alacritty color config" >>"$tmptheme"
+
+  # combine both into final config file
+  # replace original file with new colorscheme-added version
+  cat "$tmptheme" "$tmpfile" >"$alacritty_conf"
+
+  dbg_msg $app "Saved theme to $alacritty_conf"
+}
+
+# Safe sourcing: https://stackoverflow.com/a/12694189
+DIR="${BASH_SOURCE%/*}"
+if [[ ! -d "$DIR" ]]; then DIR="$PWD"; fi
+# shellcheck source=utilities.sh
+. "$DIR/utilities.sh"
+## Dependency Checker
+#
+#  Makes sure the processor is called for the correct
+#  base16 package, or refuses to run if it is not.
+if printf '%s\n' "${dependency[@]}" | grep -q -P "^$package$"; then
+  main
+else
+  dbg_msg $app "error" "Processor does not work for package $package"
+fi
