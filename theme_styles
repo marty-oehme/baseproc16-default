@@ -1,0 +1,114 @@
+#!/usr/bin/env bash
+# shellcheck disable=2016
+readonly dependency=("samme/base16-styles")
+readonly app="styles"
+
+readonly path="$1"
+readonly package="$2"
+readonly theme="$3"
+readonly permanent="$4"
+
+stylesheet="$HOME/.config/qutebrowser/stylesheets/stylesheet.css"
+styletemplate="css-template.css"
+
+## Main Entrypoint
+#
+#  Finds the right theme template file and starts theme
+#  switching and, if necessary, permanent setting processes.
+main() {
+  dbg_msg $app "Starting Processor"
+  tfile="$path/$package/scss/base16-$theme.scss"
+
+  if ! file_exists "$tfile"; then
+    dbg_msg $app "error" "Theme template $theme not found in package $package"
+    exit 1
+  fi
+
+  if [[ "$permanent" == "true" ]]; then save; fi
+  theme
+
+  dbg_msg $app "Processor Done"
+}
+
+## Theme switcher
+#
+#  Makes sure that if any application instance is
+#  currently running, it switches to new theme.
+theme() {
+  dbg_msg $app "Switching theme"
+  # make sure qutebrowser is running
+  pgrep qutebrowser >/dev/null || {
+    dbg_msg $app "warn" "No instance running, not switching theme"
+    return
+  }
+  qutebrowser --loglevel error ":set content.user_stylesheets $stylesheet"
+  dbg_msg $app "Successfully switched theme"
+}
+
+## Theme setter
+#
+#  Takes care of permanently writing the desired
+#  base16 theme into application settings.
+save() {
+  dbg_msg $app "Saving theme"
+
+  fix_placeholders
+
+  echo "$newsheet" >"$stylesheet"
+
+}
+
+fix_placeholders() {
+  local base00 base01 base02 base03 base04 base05 base06 base07 base08 base09 base0A base0B base0C base0D base0E base0F
+  base00=$(grep -e "\$base00" "$tfile" | sed -e 's/^$base00: \(#[[:alnum:]]\+\);$/\1/')
+  base01=$(grep -e "\$base01" "$tfile" | sed -e 's/^$base01: \(#[[:alnum:]]\+\);$/\1/')
+  base02=$(grep -e "\$base02" "$tfile" | sed -e 's/^$base02: \(#[[:alnum:]]\+\);$/\1/')
+  base03=$(grep -e "\$base03" "$tfile" | sed -e 's/^$base03: \(#[[:alnum:]]\+\);$/\1/')
+  base04=$(grep -e "\$base04" "$tfile" | sed -e 's/^$base04: \(#[[:alnum:]]\+\);$/\1/')
+  base05=$(grep -e "\$base05" "$tfile" | sed -e 's/^$base05: \(#[[:alnum:]]\+\);$/\1/')
+  base06=$(grep -e "\$base06" "$tfile" | sed -e 's/^$base06: \(#[[:alnum:]]\+\);$/\1/')
+  base07=$(grep -e "\$base07" "$tfile" | sed -e 's/^$base07: \(#[[:alnum:]]\+\);$/\1/')
+  base08=$(grep -e "\$base08" "$tfile" | sed -e 's/^$base08: \(#[[:alnum:]]\+\);$/\1/')
+  base09=$(grep -e "\$base09" "$tfile" | sed -e 's/^$base09: \(#[[:alnum:]]\+\);$/\1/')
+  base0A=$(grep -e "\$base0A" "$tfile" | sed -e 's/^$base0A: \(#[[:alnum:]]\+\);$/\1/')
+  base0B=$(grep -e "\$base0B" "$tfile" | sed -e 's/^$base0B: \(#[[:alnum:]]\+\);$/\1/')
+  base0C=$(grep -e "\$base0C" "$tfile" | sed -e 's/^$base0C: \(#[[:alnum:]]\+\);$/\1/')
+  base0D=$(grep -e "\$base0D" "$tfile" | sed -e 's/^$base0D: \(#[[:alnum:]]\+\);$/\1/')
+  base0E=$(grep -e "\$base0E" "$tfile" | sed -e 's/^$base0E: \(#[[:alnum:]]\+\);$/\1/')
+  base0F=$(grep -e "\$base0F" "$tfile" | sed -e 's/^$base0F: \(#[[:alnum:]]\+\);$/\1/')
+
+  newsheet=$(sed -e "s/%base00%/$base00/;s/%base01%/$base01/;s/%base02%/$base02/;s/%base03%/$base03/;s/%base04%/$base04/;s/%base05%/$base05/;s/%base06%/$base06/;s/%base07%/$base07/;s/%base08%/$base08/;s/%base09%/$base09/;s/%base0A%/$base0A/;s/%base0B%/$base0B/;s/%base0C%/$base0C/;s/%base0D%/$base0D/;s/%base0E%/$base0E/;s/%base0F%/$base0F/" "$styletemplate")
+}
+
+## Theme includer
+#
+#  Makes sure that theme is actually included in
+#  default application startup routine.
+#  This is the most invasive step of theming since it
+#  rewrites within existing configuration files.
+include() {
+  local qt_dir="$1"
+  dbg_msg $app "Including theme in configuration"
+
+  if file_exists "$qt_dir/config.py"; then
+    line_exists_or_append "$qt_dir/config.py" "config.source('colorscheme.py')"
+    dbg_msg $app "Successfully included theme in configuration"
+  else
+    dbg_msg $app "warn" "No default configuration file found"
+  fi
+}
+
+# Safe sourcing: https://stackoverflow.com/a/12694189
+DIR="${BASH_SOURCE%/*}"
+if [[ ! -d "$DIR" ]]; then DIR="$PWD"; fi
+# shellcheck source=utilities.sh
+. "$DIR/utilities.sh"
+## Dependency Checker
+#
+#  Makes sure the processor is called for the correct
+#  base16 package, or refuses to run if it is not.
+if printf '%s\n' "${dependency[@]}" | grep -q -P "^$package$"; then
+  main
+else
+  dbg_msg $app "error" "Processor does not work for package $package"
+fi
