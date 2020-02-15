@@ -106,6 +106,8 @@ save() {
   # replace original file with new colorscheme-added version
   cat "$tmptheme" "$tmpfile" >"$alacritty_conf"
 
+  rm "$tmptheme" "$tmpfile"
+
   dbg_msg $app "Saved theme to $alacritty_conf"
 }
 
