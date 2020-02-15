@@ -58,17 +58,16 @@ include() {
   dbg_msg $app "Sucessfully included theme"
 }
 
+# Safe sourcing: https://stackoverflow.com/a/12694189
+DIR="${BASH_SOURCE%/*}"
+if [[ ! -d "$DIR" ]]; then DIR="$PWD"; fi
+# shellcheck source=utilities.sh
+. "$DIR/utilities.sh"
 ## Dependency Checker
 #
 #  Makes sure the processor is called for the correct
 #  base16 package, or refuses to run if it is not.
 if printf '%s\n' "${dependency[@]}" | grep -q -P "^$package$"; then
-  # Safe sourcing: https://stackoverflow.com/a/12694189
-  DIR="${BASH_SOURCE%/*}"
-  if [[ ! -d "$DIR" ]]; then DIR="$PWD"; fi
-  # shellcheck source=utilities.sh
-  . "$DIR/utilities.sh"
-
   main
 else
   dbg_msg $app "error" "Processor does not work for package $package"
