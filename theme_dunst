@@ -1,0 +1,116 @@
+#!/usr/bin/env bash
+readonly dependency=("khamer/base16-dunst")
+readonly app="dunst"
+#
+# Alacritty does not support including other files into
+# its configuration yet. As such, this processor needs to
+# change the user's configuration file *itself*.
+#
+# This will generally not be a problem, though it can lead
+# to corrupted configurations in exceptional circumstances
+# (such as every line being preceded by the process control
+# regex, for whatever reason).
+#
+# In general, the processor looks for a specific line in the
+# following format:
+# '# Base16 [theme name] - alacritty color config'
+# from which it will delete everything until it finds a line:
+# '# Base16End [theme name] - alacritty color config'
+# So, if you don't want to lose anything -
+# Do NOT put anything important between those two lines.
+
+path="$1"
+package="$2"
+theme="$3"
+permanent="$4"
+
+dunst_conf="$HOME/.config/dunst/dunstrc"
+
+## Main Entrypoint
+#
+#  Finds the right theme template file and starts theme
+#  switching and, if necessary, permanent setting processes.
+main() {
+  dbg_msg $app "Starting Processor"
+  tfile="$path/$package/themes/base16-$theme.dunstrc"
+
+  if ! file_exists "$tfile"; then
+    dbg_msg $app "error" "Theme template $theme not found in package $package"
+    exit 1
+  fi
+
+  if [ ! -f "$dunst_conf" ]; then
+    dbg_msg $app "error" "$app config file not found. Please make sure file exists: $dunst_conf"
+  fi
+
+  if [[ "$permanent" == "true" ]]; then save; fi
+
+  dbg_msg $app "Processor Done"
+}
+
+## Theme setter
+#
+#  Takes care of permanently writing the desired
+#  base16 theme into application settings.
+save() {
+  dbg_msg $app "Saving theme"
+
+  startline="$(grep -ne '^# Base16 .*- dunst color config$' "$dunst_conf" | cut -f1 -d:)"
+  endline="$(grep -ne '^# Base16End .*- dunst color config$' "$dunst_conf" | cut -f1 -d:)"
+
+  tmpfile="$dunst_conf.tmp"
+  tmptheme="$dunst_conf.thm.tmp"
+  echo "" >"$tmpfile"
+  echo "" >"$tmptheme"
+
+  if [[ -n "$startline" && -z "$endline" ]] || [[ -z "$startline" && -n "$endline" ]] || [[ "$startline" -gt "$endline" ]]; then
+    dbg_msg $app "error" "Base 16 Pattern not correctly recognized in file: $dunst_conf. Please make sure pattern begins with # Base16 and ends with # Base16End and only exists once in the file. No changes to file made."
+    cat "$dunst_conf" >"$tmpfile" || exit 1
+
+  elif [[ -z "$startline" && -z "$endline" ]]; then
+    dbg_msg $app "warn" "No previous Base16 pattern found in file: $dunst_conf. If this is your first time running the processor, ignore this warning."
+    cat "$dunst_conf" >"$tmpfile" || exit 1
+
+  else
+    # remove old lines of any base16 theme
+    sed -e "$startline,$endline d" "$dunst_conf" >"$tmpfile" || exit 1
+
+  fi
+
+  # fix template theme name key for easier inclusion
+  echo "# Base16 $theme - dunst color config" >"$tmptheme"
+  cat "$tfile" >>"$tmptheme" || exit 1
+  echo "# Base16End $theme - dunst color config" >>"$tmptheme"
+
+  # combine both into final config file
+  # replace original file with new colorscheme-added version
+
+  cat "$tmpfile" "$tmptheme" >"$dunst_conf"
+
+  [ -f "$tmptheme" ] && rm "$tmptheme"
+  [ -f "$tmpfile" ] && rm "$tmpfile"
+
+  dbg_msg $app "Saved theme to $dunst_conf"
+
+  save_post
+}
+
+save_post() {
+  pkill dunst
+  dunst &
+}
+
+# Safe sourcing: https://stackoverflow.com/a/12694189
+DIR="${BASH_SOURCE%/*}"
+if [[ ! -d "$DIR" ]]; then DIR="$PWD"; fi
+# shellcheck source=utilities.sh
+. "$DIR/utilities.sh"
+## Dependency Checker
+#
+#  Makes sure the processor is called for the correct
+#  base16 package, or refuses to run if it is not.
+if printf '%s\n' "${dependency[@]}" | grep -q -P "^$package$"; then
+  main
+else
+  dbg_msg $app "error" "Processor does not work for package $package"
+fi
