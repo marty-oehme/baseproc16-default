@@ -77,7 +77,11 @@ fix_placeholders() {
   base0E=$(grep -e "\$base0E" "$tfile" | sed -e 's/^$base0E: \(#[[:alnum:]]\+\);$/\1/')
   base0F=$(grep -e "\$base0F" "$tfile" | sed -e 's/^$base0F: \(#[[:alnum:]]\+\);$/\1/')
 
-  newsheet=$(sed -e "s/%base00%/$base00/;s/%base01%/$base01/;s/%base02%/$base02/;s/%base03%/$base03/;s/%base04%/$base04/;s/%base05%/$base05/;s/%base06%/$base06/;s/%base07%/$base07/;s/%base08%/$base08/;s/%base09%/$base09/;s/%base0A%/$base0A/;s/%base0B%/$base0B/;s/%base0C%/$base0C/;s/%base0D%/$base0D/;s/%base0E%/$base0E/;s/%base0F%/$base0F/" "$styletemplate")
+  # get directory of calling file
+  local DIR="${BASH_SOURCE%/*}"
+  if [[ ! -d "$DIR" ]]; then DIR="$PWD"; fi
+
+  newsheet=$(sed -e "s/%base00%/$base00/;s/%base01%/$base01/;s/%base02%/$base02/;s/%base03%/$base03/;s/%base04%/$base04/;s/%base05%/$base05/;s/%base06%/$base06/;s/%base07%/$base07/;s/%base08%/$base08/;s/%base09%/$base09/;s/%base0A%/$base0A/;s/%base0B%/$base0B/;s/%base0C%/$base0C/;s/%base0D%/$base0D/;s/%base0E%/$base0E/;s/%base0F%/$base0F/" "$DIR/$styletemplate")
 }
 
 ## Theme includer
