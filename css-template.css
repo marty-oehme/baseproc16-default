@@ -1710,3 +1710,39 @@ a.comment-user.owner {
   background-color: %base02% !important;
   color: %base00% !important;
 }
+
+/* gitlab */
+.file-title-flex-parent {
+  background-color: %base01% !important
+}
+.nav-sidebar {
+  background-color: %base01% !important
+}
+.toggle-sidebar-button, .close-nav-button {
+  background-color: %base01% !important
+}
+.info-well {
+  background-color: %base02% !important
+}
+table.table tr th, .md table:not(.code) tr th {
+  background-color: %base02% !important
+}
+.clipboard-group .label-monospace, .commit-sha-group .label-monospace {
+  background-color: %base02% !important
+}
+
+/* youtube */
+ytd-masthead, #container.ytd-searchbox, #search-icon-legacy.ytd-searchbox, #guide-content.ytd-app, ytd-mini-guide-renderer, ytd-mini-guide-entry-renderer {
+  background-color: %base01% !important
+}
+.guide-icon.ytd-mini-guide-entry-renderer {
+  color: %base02%
+}
+#content-text.ytd-comment-renderer, .content.ytd-video-secondary-info-renderer, .gsfs {
+  color: %base04% !important;
+}
+
+
+#page, .kb #introwrap, .navbar-fixed-top {
+  background-color: %base00% !important
+}
