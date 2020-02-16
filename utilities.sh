@@ -78,7 +78,24 @@ dbg_msg() {
   info) display=2 ;;
   esac
 
+  # if the user wants to be informed, send it out there
   if (("$level" <= "$display")); then
-    printf "%b%-15s %s \u001b[0m\n" "$color" "$(tr '[:lower:]' '[:upper:]' <<<\["$application"])" "$@"
+
+    # send it to notification daemon if libnotify exists
+    if command -v notify-send >/dev/null; then
+      local urgency
+      case "$level" in
+      0) urgency="critical" ;;
+      1) urgency="normal" ;;
+      2 | *) urgency="low" ;;
+      esac
+      notify-send --urgency="$urgency" "$(tr '[:lower:]' '[:upper:]' <<<\["$application"])" "$@"
+
+    else
+      # otherwise just print it out
+      printf "%s: 📦 %s must be installed for this function.\n" "$2" "$1"
+      printf "%b%-15s %s \u001b[0m\n" "$color" "$(tr '[:lower:]' '[:upper:]' <<<\["$application"])" "$@"
+    fi
+
   fi
 }
