@@ -189,7 +189,7 @@ a.filter-item:hover,
   background-color: %base01% !important;
   color: %base05% !important;
 }
-.gh-header {
+.gh-header, .gh-header-sticky+.gh-header-shadow, .TimelineItem-break {
   background-color: %base00% !important;
 }
 .gh-header-number {
@@ -1742,6 +1742,18 @@ ytd-masthead, #container.ytd-searchbox, #search-icon-legacy.ytd-searchbox, #guid
   color: %base04% !important;
 }
 
+/* stackexchange */
+body {
+  background-image:initial;
+}
+
+/* duckduckgo */
+.search, .search--adv {
+  background-color: %base01% !important
+}
+.tag-home {
+  visibility: hidden;
+}
 
 #page, .kb #introwrap, .navbar-fixed-top {
   background-color: %base00% !important
