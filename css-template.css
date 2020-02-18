@@ -1712,23 +1712,17 @@ a.comment-user.owner {
 }
 
 /* gitlab */
-.file-title-flex-parent {
-  background-color: %base01% !important
+.nav-sidebar, .nav-wrapper, .file-title-flex-parent, .toggle-sidebar-button, .close-nav-button {
+  background-color: #534636 !important
 }
-.nav-sidebar {
-  background-color: %base01% !important
+.info-well, table.table tr th, .md table:not(.code) tr th, .clipboard-group .label-monospace, .commit-sha-group .label-monospace {
+  background-color: #645240 !important
 }
-.toggle-sidebar-button, .close-nav-button {
-  background-color: %base01% !important
+.header p {
+  color: #645240 !important
 }
-.info-well {
-  background-color: %base02% !important
-}
-table.table tr th, .md table:not(.code) tr th {
-  background-color: %base02% !important
-}
-.clipboard-group .label-monospace, .commit-sha-group .label-monospace {
-  background-color: %base02% !important
+.main, .header {
+  background-color: inherit !important;
 }
 
 /* youtube */
