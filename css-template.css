@@ -1721,7 +1721,7 @@ a.comment-user.owner {
 .header p {
   color: #645240 !important
 }
-.main, .header {
+.main, .header, .navbar-gitlab {
   background-color: inherit !important;
 }
 
@@ -1738,7 +1738,7 @@ ytd-masthead, #container.ytd-searchbox, #search-icon-legacy.ytd-searchbox, #guid
 
 /* stackexchange */
 body {
-  background-image:initial;
+  background-image:initial !important;
 }
 
 /* duckduckgo */
@@ -1746,9 +1746,33 @@ body {
   background-color: %base01% !important
 }
 .tag-home {
-  visibility: hidden;
+  visibility: hidden !important;
+}
+
+/* matrix.org */
+.mxcontent__main {
+  background-color: inherit !important;
 }
 
 #page, .kb #introwrap, .navbar-fixed-top {
   background-color: %base00% !important
+}
+
+/* shaarli */
+.linksperpage,
+.linksperpage a,
+.linklist-filters,
+.linklist-filters .filter-off,
+.linklist-filters .filter-on,
+.searchform-block button,
+.linklist-pages,
+.linkcount,
+.shaarli-menu,
+.linklist-item,
+.linklist-item-title,
+.linklist-item-description,
+.linklist-item-infos {
+  background-color: inherit !important;
+  color: inherit !important;
+  box-shadow: 0px 1px 0px inherit;
 }
