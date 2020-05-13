@@ -43,8 +43,10 @@ theme() {
     # we need to close panels that are in a mode and get them out to send keys to vim
     if [ "${l: -1}" = 1 ]; then
       tmux send-keys -t "${l/:*/}" -X cancel && tmux send-keys -t "${l/:*/}" ":source $tfile" "Enter"
+      tmux send-keys -t "${l/:*/}" ":AirlineTheme base16" "Enter"
     else
       tmux send-keys -t "${l/:*/}" ":source $tfile" "Enter"
+      tmux send-keys -t "${l/:*/}" ":AirlineTheme base16" "Enter"
     fi
 
     # find all panes which currently have nvim/vim running

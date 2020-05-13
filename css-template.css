@@ -1721,8 +1721,11 @@ a.comment-user.owner {
 .header p {
   color: #645240 !important
 }
-.main, .header, .navbar-gitlab {
+.main, .header, .navbar-gitlab, .file-holder .file-content, .md {
   background-color: inherit !important;
+}
+.md p {
+  color: inherit !important;
 }
 
 /* youtube */
@@ -1776,6 +1779,22 @@ body {
   color: inherit !important;
   box-shadow: 0px 1px 0px inherit;
 }
+
+/* digitalocean */
+.tutorial-single .tutorial-content {
+  color: inherit !important;
+}
+
+/* archlinux wiki */
+#content a:not(.new) {
+  color: inherit !important;
+}
+
+/* mpv.io */
+.main-content {
+  background-color: inherit !important;
+}
+
 /* todoist */
 .theme_dark .task_list_item, .task_list_item,
 .theme_dark .view_header, .view_header,
