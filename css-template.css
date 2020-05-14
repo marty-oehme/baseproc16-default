@@ -1721,7 +1721,7 @@ a.comment-user.owner {
 .header p {
   color: #645240 !important
 }
-.main, .header, .navbar-gitlab, .file-holder .file-content, .md {
+.main, .header, .navbar-gitlab, .file-holder .file-content, .md, .timeline-entry {
   background-color: inherit !important;
 }
 .md p {
