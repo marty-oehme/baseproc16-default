@@ -339,7 +339,7 @@ a.filter-item:hover,
 .boxed-group * {
   border-color: %base02% !important;
 }
-.boxed-group article {
+.boxed-group article, #article article, article {
   background-color: %base00% !important;
   color: %base04% !important;
 }
@@ -1724,6 +1724,9 @@ a.comment-user.owner {
 .main, .header, .navbar-gitlab, .file-holder .file-content, .md, .timeline-entry {
   background-color: inherit !important;
 }
+.notifications-list-item.notification-unread .notification-list-item-link {
+  color: inherit !important;
+}
 .md p {
   color: inherit !important;
 }
@@ -1791,7 +1794,7 @@ body {
 }
 
 /* mpv.io */
-.main-content {
+#main, .main-content {
   background-color: inherit !important;
 }
 
@@ -1836,3 +1839,9 @@ body {
   background-color: inherit !important;
 }
 /* END todoist */
+
+/* medium */
+/* medium has top level dx class override anything in each text paragraph :\ */
+.dx {
+  color: inherit;
+}
