@@ -1776,3 +1776,44 @@ body {
   color: inherit !important;
   box-shadow: 0px 1px 0px inherit;
 }
+/* todoist */
+.theme_dark .task_list_item, .task_list_item,
+.theme_dark .view_header, .view_header,
+.theme_dark #left_menu, #left_menu,
+.theme_dark #page_background, #page_background,
+.theme_dark #top_bar, #top_bar,
+.theme_dark #content_wrapper, #content_wrapper,
+/* fonts */
+.theme_dark #left_menu #top_filters li, #left_menu #top_filters li,
+.theme_dark #left_menu .generic_left_list .gear_menu, .theme_dark #left_menu .generic_left_list .name, #left_menu .generic_left_list .gear_menu, #left_menu .generic_left_list .name,
+.theme_dark .expansion_panel header .expansion_panel__toggle, .expansion_panel header .expansion_panel__toggle {
+  background-color: inherit;
+  color: inherit;
+}
+/* detail view */
+.theme_dark .reactist_modal_box, .reactist_modal_box,
+.theme_dark .reactist.tabs, .reactist.tabs,
+.theme_dark .comments_textarea_holder, .comments_textarea_holder {
+  background-color: %base00% !important;
+  color: inherit !important;
+}
+.item_due_selector, .theme_dark .item_due_selector,
+.theme_dark .item_actions .item_action, .item_actions .item_action
+.theme_dark .comments_container .user_name, .comments_container .user_name,
+.theme_dark .comments_container .time, .comments_container .time,
+.theme_dark .comments_textarea_holder .comments_textarea_buttons, .comments_textarea_holder .comments_textarea_buttons,
+.theme_dark .reactist_modal_box, .reactist_modal_box {
+  color: %base04% !important;
+}
+/* highlighted in menu bar */
+.generic_left_list .current table,
+.theme_dark #left_menu #top_filters li.current {
+  background-color: %base01% !important;
+}
+/* needs important since it is already marked so in doist */
+.theme_dark .expansion_panel header, .expansion_panel header,
+.theme_dark #left_menu .expansion_panel header:before, #left_menu .expansion_panel header:before,
+.menu {
+  background-color: inherit !important;
+}
+/* END todoist */
