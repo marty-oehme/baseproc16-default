@@ -1721,7 +1721,7 @@ a.comment-user.owner {
 .header p {
   color: #645240 !important
 }
-.main, .header, .navbar-gitlab, .file-holder .file-content, .md, .timeline-entry {
+.main, .header, .navbar-gitlab, .file-holder .file-content, .md, .timeline-entry, body>.wrapper {
   background-color: inherit !important;
 }
 .notifications-list-item.notification-unread .notification-list-item-link {
@@ -1843,5 +1843,37 @@ body {
 /* medium */
 /* medium has top level dx class override anything in each text paragraph :\ */
 .dx {
+  color: inherit;
+}
+/* hackernews ( & wallabag ) */
+table#hnmain {
+  width: 100%;
+}
+.comment,#article {
+  font-family: Brill,Roboto,sans-serif !important;
+}
+/* lesswrong */
+.PostsPage-postContent {
+  color: inherit;
+}
+/* cristian.io */
+.section {
+  background-color: inherit;
+}
+/* goodreads */
+.mainContent, .mainContentFloat {
+  background-color: inherit;
+}
+/* github */
+.bg-gray-light {
+  background-color: inherit !important;
+}
+/* gitea header, repo, markdown readme, tables */
+.repository, .repository .header-wrapper, .ui.table, .ui.table tbody tr, .ui.attached.table, .ui.attached.table.segment, footer {
+  background-color: inherit !important;
+  color: inherit !important;
+}
+.ui.button, .ui.tabular.menu .active.item, .ui.segment {
+  background-color: %base02% !important;
   color: inherit;
 }
