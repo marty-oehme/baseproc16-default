@@ -91,11 +91,9 @@ dbg_msg() {
       esac
       notify-send --urgency="$urgency" "$(tr '[:lower:]' '[:upper:]' <<<\["$application"])" "$@"
 
-    else
-      # otherwise just print it out
-      printf "%s: 📦 %s must be installed for this function.\n" "$2" "$1"
-      printf "%b%-15s %s \u001b[0m\n" "$color" "$(tr '[:lower:]' '[:upper:]' <<<\["$application"])" "$@"
     fi
-
+    # otherwise just print it out
+    printf "%b%-15s %s \u001b[0m\n" "$color" "$(tr '[:lower:]' '[:upper:]' <<<\["$application"])" "$@"
   fi
+
 }
