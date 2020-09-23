@@ -1819,6 +1819,10 @@ body {
   background-color: %base00% !important;
   color: inherit !important;
 }
+/* upcoming view */
+.upcoming_view__background, .upcoming_view__calendar__wrapper {
+  background-color: inherit;
+}
 .item_due_selector, .theme_dark .item_due_selector,
 .theme_dark .item_actions .item_action, .item_actions .item_action
 .theme_dark .comments_container .user_name, .comments_container .user_name,
