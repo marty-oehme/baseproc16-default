@@ -1823,6 +1823,11 @@ body {
 .upcoming_view__background, .upcoming_view__calendar__wrapper {
   background-color: inherit;
 }
+/* board view */
+.board_section, .board_view__section_board,
+.board_task {
+  background-color: inherit;
+}
 .item_due_selector, .theme_dark .item_due_selector,
 .theme_dark .item_actions .item_action, .item_actions .item_action
 .theme_dark .comments_container .user_name, .comments_container .user_name,
@@ -1880,4 +1885,8 @@ table#hnmain {
 .ui.button, .ui.tabular.menu .active.item, .ui.segment {
   background-color: %base02% !important;
   color: inherit;
+}
+/* microsoft academic */
+.primary_paper, .ma-tag .text {
+  background-color: inherit;
 }
