@@ -1887,6 +1887,10 @@ table#hnmain {
   color: inherit;
 }
 /* microsoft academic */
-.primary_paper, .ma-tag .text {
+.primary_paper, .ma-card .paper .primary_paper, .ma-tag .text {
+  background-color: inherit;
+}
+/* google calendar */
+.v83gc, .YoVtqb, .eh5oYe, .Gk2izd, .GENA3c {
   background-color: inherit;
 }
