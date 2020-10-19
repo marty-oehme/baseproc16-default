@@ -1851,7 +1851,7 @@ body {
 
 /* medium */
 /* medium has top level dx class override anything in each text paragraph :\ */
-.dx {
+.dx, .em {
   color: inherit;
 }
 /* hackernews ( & wallabag ) */
@@ -1893,4 +1893,8 @@ table#hnmain {
 /* google calendar */
 .v83gc, .YoVtqb, .eh5oYe, .Gk2izd, .GENA3c {
   background-color: inherit;
+}
+/* reddit */
+.commentarea, .comments-page .comment {
+  background-color: inherit !important;
 }
