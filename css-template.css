@@ -1858,8 +1858,13 @@ body {
 table#hnmain {
   width: 100%;
 }
+/* wallabag */
 .comment,#article {
   font-family: Brill,Roboto,sans-serif !important;
+}
+/* list rendering improvement */
+.collection .collection-item, .card, .card-panel {
+  background-color: inherit;
 }
 /* lesswrong */
 .PostsPage-postContent {
