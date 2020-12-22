@@ -25,6 +25,7 @@ theme="$3"
 permanent="$4"
 
 alacritty_conf="$HOME/.config/alacritty/alacritty.yml"
+include_conf="$HOME/.config/alacritty/colorscheme.yml"
 
 ## Main Entrypoint
 #
@@ -54,6 +55,7 @@ main() {
 #  Makes sure that if any application instance is
 #  currently running, it switches to new theme.
 theme() {
+  # TODO also do through include file
   dbg_msg $app "Setting up live config reload"
   if grep -qe '^live_config_reload:.*false' "$alacritty_conf"; then
     sed -e 's/^live_config_reload:.*false/^live_config_reload: true/gm'
@@ -61,6 +63,8 @@ theme() {
   else
     dbg_msg $app "Live config reload already enabled"
   fi
+  dbg_msg $app "Touching alacritty config"
+  touch "$alacritty_conf"
 }
 
 ## Theme setter
@@ -70,45 +74,47 @@ theme() {
 save() {
   dbg_msg $app "Saving theme"
 
-  # following format:
-  # '# Base16 [theme name] - alacritty color config'
-  # from which it will delete everything until it finds a line:
-  # '# Base16End [theme name] - alacritty color config'
-  startline="$(grep -ne '^# Base16 .*- alacritty color config$' "$alacritty_conf" | cut -f1 -d:)"
-  endline="$(grep -ne '^# Base16End .*- alacritty color config$' "$alacritty_conf" | cut -f1 -d:)"
+  # replace colorscheme.yml content with new one
+  cp "$tfile" "$include_conf"
+  dbg_msg $app "Wrote theme file to $include_conf"
 
-  tmpfile="$alacritty_conf.tmp"
-  tmptheme="$alacritty_conf.thm.tmp"
+  # find import line in alacritty conf
+  if grep -qe '^import:' "$alacritty_conf"; then
 
-  if [[ -n "$startline" && -z "$endline" ]] || [[ -z "$startline" && -n "$endline" ]] || [[ "$startline" -gt "$endline" ]]; then
-    dbg_msg $app "error" "Base 16 Pattern not correctly recognized in file: $alacritty_conf. Please make sure pattern begins with # Base 16 and ends with # Base 16end and only exists once in the file. No changes to file made."
+    # find first line containing imports (actual - file.yml line)
+    local import_first_line
+    import_first_line=$(grep -ne '^import:' "$alacritty_conf" | cut -f1 -d:)
+    import_first_line=$((import_first_line + 1))
+    # find last line containing imports (actual - file.yml line)
+    local import_last_line
+    import_last_line=$(tail -n+"$import_first_line" "$alacritty_conf" | grep -nve '[[:space:]]*-' | head -n1 | cut -f1 -d:)
+    # extract imports
+    local imports
+    imports=$(tail -n+$import_first_line "$alacritty_conf" | head -n $((import_first_line + import_last_line)))
 
-  elif [[ -z "$startline" && -z "$endline" ]]; then
-    # TODO on first run automatically replace ^colors: line and any subsequent indented lines with commented versions and create colors: *colorscheme programatically
-    dbg_msg $app "warn" "No previous Base16 pattern found in file: $alacritty_conf. If this is your first time running the processor, please manually remove any previous colors: settings and replace with 'colors: *colorscheme' instead."
-    cat "$alacritty_conf" >"$tmpfile" || exit 1
-
+    if echo "$imports" | grep -qe "$(basename "$include_conf")$"; then
+      dbg_msg $app "Already correctly imports theme file"
+      return
+    else
+      dbg_msg $app "Creating config backup file"
+      tmpfile="$alacritty_conf.tmp"
+      cp "$alacritty_conf" "$tmpfile"
+      dbg_msg $app "Including theme file in imports"
+      (
+        head -n $((import_first_line - 1)) "$tmpfile"
+        echo "  - ${include_conf#${HOME}/}"
+        tail -n +$import_first_line "$tmpfile"
+      ) >"$alacritty_conf"
+      dbg_msg $app "Removing config backup file"
+      rm "$tmpfile"
+    fi
+  # no imports yet, append to end of file
   else
-    # remove old lines of any base16 theme
-    sed -e "$startline,$endline d" "$alacritty_conf" >"$tmpfile" || exit 1
-
+    # we remove the home prefix from the absolute path since alacritty
+    # can deal with an inclusion in the form of .config/alacritty/colorscheme.yml
+    printf "\nimport:\n  - %s\n" "${include_conf#${HOME}/}" >>"$alacritty_conf"
   fi
 
-  # make sure we're not adding this line twice
-  sed -e 's/^draw_bold_text_with_bright_colors:/# draw_bold_text_with_bright_colors:/' "$tmpfile" >"$tmpfile.tmp"
-  mv "$tmpfile.tmp" "$tmpfile"
-
-  # fix template theme name key for easier inclusion
-  sed -e "s/^colors:/$theme: \&colorscheme/" "$tfile" >"$tmptheme" || exit 1
-  echo "# Base16End $theme - alacritty color config" >>"$tmptheme"
-
-  # combine both into final config file
-  # replace original file with new colorscheme-added version
-  cat "$tmptheme" "$tmpfile" >"$alacritty_conf"
-
-  rm "$tmptheme" "$tmpfile"
-
-  dbg_msg $app "Saved theme to $alacritty_conf"
 }
 
 # Safe sourcing: https://stackoverflow.com/a/12694189
