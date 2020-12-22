@@ -41,6 +41,14 @@ line_exists_or_append() {
   fi
 }
 # Print a debug message to stdout
+# Takes arguments in the form:
+#   dbg_msg application-name [severity] message
+#
+# Application name and message are mandatory.
+# Severity level should be one of
+# error | warn | info
+# in decreasing severity.
+# If no severity level is applied, it defaults to info.
 dbg_msg() {
   local application="$1"
   shift
