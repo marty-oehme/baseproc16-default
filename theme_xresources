@@ -43,8 +43,8 @@ theme() {
 #  Some applications reading from Xresources need a restart
 #  to use the new settings.
 theme_post() {
-  type polybar-launch >/dev/null 2>&1 && {
-    polybar-launch simple-top >/dev/null
+  type polybar-msg >/dev/null 2>&1 && {
+    polybar-msg cmd restart
     dbg_msg $app "Restarting polybar"
   }
 }
