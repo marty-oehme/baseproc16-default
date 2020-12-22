@@ -54,8 +54,13 @@ save() {
 
   fix_placeholders
 
-  echo "$newsheet" >"$stylesheet"
+  if [ ! -f "$stylesheet" ]; then
+    mkdir -p "$(dirname "$stylesheet")" || dbg_msg $app error "Could not create theme folder for $stylesheet"
+    dbg_msg $app "Theme folder for $stylesheet did not exist yet so I created it"
+  fi
 
+  echo "$newsheet" >"$stylesheet"
+  dbg_msg $app "Saved theme to $stylesheet"
 }
 
 fix_placeholders() {
