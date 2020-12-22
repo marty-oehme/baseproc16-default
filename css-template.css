@@ -1859,8 +1859,10 @@ table#hnmain {
   width: 100%;
 }
 /* wallabag */
-.comment,#article {
+.comment,#article, #article {
   font-family: Brill,Roboto,sans-serif !important;
+  background-color: inherit;
+  box-shadow: 0 0 10px %base04%;
 }
 /* list rendering improvement */
 .collection .collection-item, .card, .card-panel {
@@ -1902,4 +1904,15 @@ table#hnmain {
 /* reddit */
 .commentarea, .comments-page .comment {
   background-color: inherit !important;
+}
+/* outline */
+.yue {
+  color: inherit;
+}
+.wy-nav-content, .wy-nav-content-wrap {
+  background-color: inherit;
+}
+/* moodle */
+#region-main {
+  background-color: inherit;
 }
