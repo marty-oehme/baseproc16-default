@@ -1792,6 +1792,18 @@ body {
 #content a:not(.new) {
   color: inherit !important;
 }
+/* archlinux forum */
+.pun,
+.pun .punwrap,
+.pun .blockpost,
+.pun .blockpost .postbody,
+.pun .blockpost .postfoot,
+.pun .postmsg,
+#punhelp code,
+#punhelp samp {
+  background-color: inherit !important;
+  color: inherit !important;
+}
 
 /* mpv.io */
 #main, .main-content {
@@ -1881,8 +1893,10 @@ table#hnmain {
   background-color: inherit;
 }
 /* github */
-.bg-gray-light {
+.bg-gray-light,
+.Link--primary, .link-gray-dark {
   background-color: inherit !important;
+  color: inherit !important;
 }
 /* gitea header, repo, markdown readme, tables */
 .repository, .repository .header-wrapper, .ui.table, .ui.table tbody tr, .ui.attached.table, .ui.attached.table.segment, footer {
