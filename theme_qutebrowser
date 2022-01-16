@@ -12,18 +12,18 @@ readonly permanent="$4"
 #  Finds the right theme template file and starts theme
 #  switching and, if necessary, permanent setting processes.
 main() {
-  dbg_msg $app "Starting Processor"
-  tfile="$path/$package/themes/default/base16-$theme.config.py"
+	dbg_msg $app "Starting Processor"
+	tfile="$path/$package/themes/default/base16-$theme.config.py"
 
-  if ! file_exists "$tfile"; then
-    dbg_msg $app "error" "Theme template $theme not found in package $package"
-    exit 1
-  fi
+	if ! file_exists "$tfile"; then
+		dbg_msg $app "error" "Theme template $theme not found in package $package"
+		exit 1
+	fi
 
-  if [[ "$permanent" == "true" ]]; then save; fi
-  theme
+	if [[ $permanent == "true" ]]; then save; fi
+	theme
 
-  dbg_msg $app "Processor Done"
+	dbg_msg $app "Processor Done"
 }
 
 ## Theme switcher
@@ -31,14 +31,14 @@ main() {
 #  Makes sure that if any application instance is
 #  currently running, it switches to new theme.
 theme() {
-  dbg_msg $app "Switching theme"
-  # make sure qutebrowser is running
-  pgrep qutebrowser >/dev/null || {
-    dbg_msg $app "warn" "No instance running, not switching theme"
-    return
-  }
-  qutebrowser --loglevel error ":config-source $tfile"
-  dbg_msg $app "Successfully switched theme"
+	dbg_msg $app "Switching theme"
+	# make sure qutebrowser is running
+	pgrep qutebrowser >/dev/null || {
+		dbg_msg $app "warn" "No instance running, not switching theme"
+		return
+	}
+	qutebrowser --loglevel error ":config-source $tfile"
+	dbg_msg $app "Successfully switched theme"
 }
 
 ## Theme setter
@@ -46,17 +46,17 @@ theme() {
 #  Takes care of permanently writing the desired
 #  base16 theme into application settings.
 save() {
-  dbg_msg $app "Saving theme"
-  local qt_dir="${XDG_CONFIG_HOME:-/$HOME/.config}/qutebrowser"
+	dbg_msg $app "Saving theme"
+	local qt_dir="${XDG_CONFIG_HOME:-/$HOME/.config}/qutebrowser"
 
-  if [[ -d "$qt_dir" ]]; then
-    cat "$tfile" >"$qt_dir/colorscheme.py"
-    dbg_msg $app "Saved theme to $qt_dir/colorscheme.py"
+	if [[ -d $qt_dir ]]; then
+		cat "$tfile" >"$qt_dir/colorscheme.py"
+		dbg_msg $app "Saved theme to $qt_dir/colorscheme.py"
 
-    include "$qt_dir"
-  else
-    dbg_msg $app "warn" "No qutebrowser configuration directory found"
-  fi
+		include "$qt_dir"
+	else
+		dbg_msg $app "warn" "No qutebrowser configuration directory found"
+	fi
 }
 
 ## Theme includer
@@ -66,20 +66,20 @@ save() {
 #  This is the most invasive step of theming since it
 #  rewrites within existing configuration files.
 include() {
-  local qt_dir="$1"
-  dbg_msg $app "Including theme in configuration"
+	local qt_dir="$1"
+	dbg_msg $app "Including theme in configuration"
 
-  if file_exists "$qt_dir/config.py"; then
-    line_exists_or_append "$qt_dir/config.py" "config.source('colorscheme.py')"
-    dbg_msg $app "Successfully included theme in configuration"
-  else
-    dbg_msg $app "warn" "No default configuration file found"
-  fi
+	if file_exists "$qt_dir/config.py"; then
+		line_exists_or_append "$qt_dir/config.py" 'config.source("colorscheme.py")'
+		dbg_msg $app "Successfully included theme in configuration"
+	else
+		dbg_msg $app "warn" "No default configuration file found"
+	fi
 }
 
 # Safe sourcing: https://stackoverflow.com/a/12694189
 DIR="${BASH_SOURCE%/*}"
-if [[ ! -d "$DIR" ]]; then DIR="$PWD"; fi
+if [[ ! -d $DIR ]]; then DIR="$PWD"; fi
 # shellcheck source=utilities.sh
 . "$DIR/utilities.sh"
 ## Dependency Checker
@@ -87,7 +87,7 @@ if [[ ! -d "$DIR" ]]; then DIR="$PWD"; fi
 #  Makes sure the processor is called for the correct
 #  base16 package, or refuses to run if it is not.
 if printf '%s\n' "${dependency[@]}" | grep -q -P "^$package$"; then
-  main
+	main
 else
-  dbg_msg $app "error" "Processor does not work for package $package"
+	dbg_msg $app "error" "Processor does not work for package $package"
 fi
