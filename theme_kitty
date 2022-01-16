@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+readonly dependency=("kdrag0n/base16-kitty")
+readonly app="kitty"
+#
+# Kitty reads its theme from the `current-theme.conf` file
+# in its .config directory.
+
+path="$1"
+package="$2"
+theme="$3"
+permanent="$4"
+
+kitty_conf="$HOME/.config/kitty/kitty.conf"
+include_conf="$HOME/.config/kitty/current-theme.conf"
+
+## Main Entrypoint
+#
+#  Finds the right theme template file and starts theme
+#  switching and, if necessary, permanent setting processes.
+main() {
+    dbg_msg $app "Starting Processor"
+    tfile="$path/$package/colors/base16-$theme.conf"
+
+    if ! file_exists "$tfile"; then
+        dbg_msg $app "error" "Theme template $theme not found in package $package"
+        exit 1
+    fi
+
+    if [ ! -f "$kitty_conf" ]; then
+        dbg_msg $app "error" "Alacritty config file not found. Please make sure file exists: $kitty_conf"
+    fi
+
+    if [[ $permanent == "true" ]]; then save; fi
+    theme
+
+    dbg_msg $app "Processor Done"
+}
+
+## Theme switcher
+#
+#  Makes sure that if any application instance is
+#  currently running, it switches to new theme.
+theme() {
+    :
+    # currently needs to be done through ANSI theme processor.
+    # May be doable with some invocation of kitty loading config files.
+    # Probably needs kitty to run with remote execution enabled.
+}
+
+## Theme setter
+#
+#  Takes care of permanently writing the desired
+#  base16 theme into application settings.
+save() {
+    dbg_msg $app "Saving theme"
+
+    # replace colorscheme.yml content with new one
+    cp "$tfile" "$include_conf"
+    dbg_msg $app "Wrote theme file to $include_conf"
+
+    # find import line in alacritty conf
+    if ! grep -qe "^include ${include_conf##*/}" "${kitty_conf}"; then
+        printf "\ninclude %s\n" "${include_conf##*/}" >>"$kitty_conf"
+        dbg_msg $app "Including theme file in imports"
+    fi
+
+}
+
+# Safe sourcing: https://stackoverflow.com/a/12694189
+DIR="${BASH_SOURCE%/*}"
+if [[ ! -d $DIR ]]; then DIR="$PWD"; fi
+# shellcheck source=utilities.sh
+. "$DIR/utilities.sh"
+## Dependency Checker
+#
+#  Makes sure the processor is called for the correct
+#  base16 package, or refuses to run if it is not.
+if printf '%s\n' "${dependency[@]}" | grep -q -P "^$package$"; then
+    main
+else
+    dbg_msg $app "error" "Processor does not work for package $package"
+fi
