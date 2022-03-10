@@ -2,14 +2,11 @@
 readonly dependency=("nicodebo/base16-zathura")
 readonly app="zathura"
 #
-# zathura does not support including other files into
-# its configuration yet. As such, this processor needs to
-# change the user's configuration file *itself*.
-#
-# This will generally not be a problem, though it can lead
-# to corrupted configurations in exceptional circumstances
-# (such as every line being preceded by the process control
-# regex, for whatever reason).
+# zathura now allows including other files into its
+# main configuration file. That means we can be less
+# intrusive about the colorscheme changes and only insert
+# the include line, adding any colorscheme options
+# in a completely different file.
 #
 # In general, the processor looks for a specific line in the
 # following format:
@@ -24,28 +21,30 @@ package="$2"
 theme="$3"
 permanent="$4"
 
-zathuraconf="$HOME/.config/zathura/zathurarc"
+zathura_conf_dir="$HOME/.config/zathura"
+zathuraconf="$zathura_conf_dir/zathurarc"
+colorscheme_filename="colorscheme"
 
 ## Main Entrypoint
 #
 #  Finds the right theme template file and starts theme
 #  switching and, if necessary, permanent setting processes.
 main() {
-  dbg_msg $app "Starting Processor"
-  tfile="$path/$package/build_schemes/base16-$theme.config"
+    dbg_msg $app "Starting Processor"
+    tfile="$path/$package/build_schemes/base16-$theme.config"
 
-  if ! file_exists "$tfile"; then
-    dbg_msg $app "error" "Theme template $theme not found in package $package"
-    exit 1
-  fi
+    if ! file_exists "$tfile"; then
+        dbg_msg $app "error" "Theme template $theme not found in package $package"
+        exit 1
+    fi
 
-  if [ ! -f "$zathuraconf" ]; then
-    dbg_msg $app "error" "Zathura config file not found. Please make sure file exists: $zathuraconf"
-  fi
+    if [ ! -f "$zathuraconf" ]; then
+        dbg_msg $app "error" "Zathura config file not found. Please make sure file exists: $zathuraconf"
+    fi
 
-  if [[ "$permanent" == "true" ]]; then save; fi
+    if [[ "$permanent" == "true" ]]; then save; fi
 
-  dbg_msg $app "Processor Done"
+    dbg_msg $app "Processor Done"
 }
 
 ## Theme setter
@@ -53,40 +52,18 @@ main() {
 #  Takes care of permanently writing the desired
 #  base16 theme into application settings.
 save() {
-  dbg_msg $app "Saving theme"
+    dbg_msg $app "Saving theme"
 
-  # following format:
-  # '# Base16 [theme name] - zathura color config'
-  # from which it will delete everything until it finds a line:
-  # '# Base16End [theme name] - zathura color config'
-  startline="$(grep -ne '^# Base16 .*$' "$zathuraconf" | cut -f1 -d:)"
-  endline="$(grep -ne '^# Base16End .*- zathura color config$' "$zathuraconf" | cut -f1 -d:)"
+    if ! $(grep -qe "^include $colorscheme_filename" "$zathuraconf"); then
+        dbg_msg $app "No include directive for colorscheme file found in configuration file. Adding it now."
+        printf "\ninclude %s\n" "$colorscheme_filename" >>"$zathuraconf"
+    else
+        dbg_msg $app "Found include directive for colorscheme file. No operation necessary."
+    fi
 
-  tmpfile="$zathuraconf.tmp"
-  tmptheme="$zathuraconf.thm.tmp"
+    cat "$tfile" >"${zathura_conf_dir}/${colorscheme_filename}" || exit 1
 
-  if [[ -n "$startline" && -z "$endline" ]] || [[ -z "$startline" && -n "$endline" ]] || [[ "$startline" -gt "$endline" ]]; then
-    dbg_msg $app "error" "Base 16 Pattern not correctly recognized in file: $zathuraconf. Please make sure pattern begins with # Base 16 and ends with # Base 16end and only exists once in the file. No changes to file made."
-
-  elif [[ -z "$startline" && -z "$endline" ]]; then
-    cat "$zathuraconf" >"$tmpfile" || exit 1
-  else
-    # remove old lines of any base16 theme
-    sed -e "$startline,$endline d" "$zathuraconf" >"$tmpfile" || exit 1
-
-  fi
-
-  # fix template theme name key for easier inclusion
-  sed -e "s/^colors:/$theme: \&colorscheme/" "$tfile" >"$tmptheme" || exit 1
-  echo "# Base16End $theme - zathura color config" >>"$tmptheme"
-
-  # combine both into final config file
-  # replace original file with new colorscheme-added version
-  cat "$tmptheme" "$tmpfile" >"$zathuraconf"
-
-  rm "$tmptheme" "$tmpfile"
-
-  dbg_msg $app "Saved theme to $zathuraconf"
+    dbg_msg $app "Saved theme to ${zathura_conf_dir}/${colorscheme_filename}"
 }
 
 # Safe sourcing: https://stackoverflow.com/a/12694189
@@ -99,7 +76,7 @@ if [[ ! -d "$DIR" ]]; then DIR="$PWD"; fi
 #  Makes sure the processor is called for the correct
 #  base16 package, or refuses to run if it is not.
 if printf '%s\n' "${dependency[@]}" | grep -q -P "^$package$"; then
-  main
+    main
 else
-  dbg_msg $app "error" "Processor does not work for package $package"
+    dbg_msg $app "error" "Processor does not work for package $package"
 fi
