@@ -1930,3 +1930,19 @@ table#hnmain {
 #region-main {
   background-color: inherit;
 }
+/* python docs */
+div.document,
+div.body {
+    background-color: inherit;
+    color: inherit;
+}
+span.highlighted,
+div.body h1,
+div.body h2,
+div.body h3,
+div.body h4,
+div.body h5,
+div.body h6,
+{
+    background-color: %base02% !important;
+}
