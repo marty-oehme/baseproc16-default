@@ -1899,7 +1899,15 @@ table#hnmain {
   color: inherit !important;
 }
 /* gitea header, repo, markdown readme, tables */
-.repository, .repository .header-wrapper, .ui.table, .ui.table tbody tr, .ui.attached.table, .ui.attached.table.segment, footer {
+.repository,
+.repository .header-wrapper,
+.ui.table,
+.ui.table tbody tr,
+.ui.attached.table,
+.ui.attached.table.segment,
+.lines-code,
+.chroma,
+footer {
   background-color: inherit !important;
   color: inherit !important;
 }
